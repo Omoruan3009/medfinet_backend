@@ -162,7 +162,7 @@ class SmartContractService {
   async compileTealProgram(filename) {
     try {
       // Read TEAL file from local file system
-      const contractsPath = path.join(__dirname, '..', '..',  'medfinet_backend', filename);
+      const contractsPath = path.join( process.cwd(), filename);
       console.log('Looking for TEAL file at:', contractsPath);
       
       if (!fs.existsSync(contractsPath)) {
