@@ -8,10 +8,9 @@ const escrowService = new EscrowService();
 const createCampaign = async (req, res) => {
   try {
     const { title, description, targetAmount, category, endDate, impactGoal, imageUrl } = req.body;
-    
+    console.log("img", imageUrl)
     // req.user comes from Supabase auth middleware
     const supabaseUser = req.user; 
-    console.log("supa", supabaseUser)
     const id = supabaseUser.hospital_id.toString();
     // Check if user exists in Prisma, if not create them
     let user = await prisma.user.findUnique({
