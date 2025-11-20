@@ -74,17 +74,6 @@ const submitSignedTransaction = async (signedTxnBase64) => {
     // If single txn:
     const txId  = await algodClient.sendRawTransaction(signedTxnUint8ArrayArray[0]).do();
 
-    // const pendingInfo = await algodClient.pendingTransactionInformation(txId.txid).do();
-    // console.log('pendingInfo:', pendingInfo);
-    // if (pendingInfo['confirmed-round'] && pendingInfo['confirmed-round'] > 0) {
-    //     const assetID = pendingInfo['asset-index']; // asset ID created by this transaction
-    //     console.log('Asset ID:', assetID);
-    // }
-
-
-    
-    // Wait for confirmation
-    // const result = await algosdk.waitForConfirmation(algodClient, txId, 4);
     const confirmedTxn = await algosdk.waitForConfirmation(algodClient, txId.txid, 4);
     const assetID = confirmedTxn['assetIndex'];
 

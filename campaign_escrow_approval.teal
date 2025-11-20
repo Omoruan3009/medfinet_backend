@@ -1,0 +1,195 @@
+#pragma version 6
+txn ApplicationID
+int 0
+==
+bnz main_l20
+txn OnCompletion
+int NoOp
+==
+bnz main_l11
+txn OnCompletion
+int DeleteApplication
+==
+bnz main_l10
+txn OnCompletion
+int UpdateApplication
+==
+bnz main_l9
+txn OnCompletion
+int CloseOut
+==
+bnz main_l8
+txn OnCompletion
+int OptIn
+==
+bnz main_l7
+err
+main_l7:
+int 1
+return
+main_l8:
+int 1
+return
+main_l9:
+int 0
+return
+main_l10:
+int 0
+return
+main_l11:
+txna ApplicationArgs 0
+byte "donate"
+==
+bnz main_l19
+txna ApplicationArgs 0
+byte "withdraw"
+==
+bnz main_l18
+txna ApplicationArgs 0
+byte "refund"
+==
+bnz main_l17
+txna ApplicationArgs 0
+byte "close"
+==
+bnz main_l16
+err
+main_l16:
+global LatestTimestamp
+byte "end_time"
+app_global_get
+<
+assert
+txn Sender
+byte "creator"
+app_global_get
+==
+assert
+byte "campaign_active"
+int 0
+app_global_put
+int 1
+return
+main_l17:
+global LatestTimestamp
+byte "end_time"
+app_global_get
+>=
+assert
+byte "raised_amount"
+app_global_get
+byte "target_amount"
+app_global_get
+<
+assert
+txn Sender
+byte "creator"
+app_global_get
+==
+txn Sender
+txna Accounts 1
+==
+||
+assert
+int 1
+return
+main_l18:
+global LatestTimestamp
+byte "end_time"
+app_global_get
+>=
+assert
+byte "raised_amount"
+app_global_get
+byte "target_amount"
+app_global_get
+>=
+assert
+txn Sender
+byte "creator"
+app_global_get
+==
+assert
+byte "raised_amount"
+app_global_get
+byte "platform_fee"
+app_global_get
+*
+int 10000
+/
+store 0
+byte "raised_amount"
+app_global_get
+load 0
+-
+store 1
+itxn_begin
+int pay
+itxn_field TypeEnum
+load 1
+itxn_field Amount
+byte "creator"
+app_global_get
+itxn_field Receiver
+int 0
+itxn_field Fee
+itxn_next
+int pay
+itxn_field TypeEnum
+load 0
+itxn_field Amount
+txna Accounts 1
+itxn_field Receiver
+int 0
+itxn_field Fee
+itxn_submit
+byte "campaign_active"
+int 0
+app_global_put
+int 1
+return
+main_l19:
+byte "campaign_active"
+app_global_get
+int 1
+==
+assert
+global LatestTimestamp
+byte "end_time"
+app_global_get
+<
+assert
+byte "raised_amount"
+byte "raised_amount"
+app_global_get
+gtxn 0 Amount
++
+app_global_put
+int 1
+return
+main_l20:
+byte "creator"
+txna ApplicationArgs 0
+app_global_put
+byte "target_amount"
+txna ApplicationArgs 1
+btoi
+app_global_put
+byte "raised_amount"
+int 0
+app_global_put
+byte "start_time"
+global LatestTimestamp
+app_global_put
+byte "end_time"
+txna ApplicationArgs 2
+btoi
+app_global_put
+byte "campaign_active"
+int 1
+app_global_put
+byte "platform_fee"
+int 200
+app_global_put
+int 1
+return

@@ -1,0 +1,139 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  wallet    String   @unique
+  createdAt DateTime @default(now())
+  
+  campaigns Campaign[]
+  donations Donation[]
+  
+  @@map("users")
+}
+
+model Campaign {
+  id           String     @id @default(cuid())
+  title        String
+  description  String
+  targetAmount Float
+  raisedAmount Float      @default(0)
+  currency     String     @default("ALGO")
+  category     String
+  status       CampaignStatus @default(PENDING)
+  creatorId    String
+  creatorWallet String
+  escrowAddress String?   @unique
+  appId        Int?       @unique // Algorand Application ID
+  createdAt    DateTime   @default(now())
+  endDate      DateTime
+  impactGoal   String
+  imageUrl     String?
+  withdrawnAmount Float?
+  withdrawnAt     DateTime?
+  withdrawals     CampaignWithdrawal[]
+  
+  creator  User      @relation(fields: [creatorId], references: [id])
+  donations Donation[]
+  updates   CampaignUpdate[]
+  escrowPayouts EscrowPayout[]
+  
+  @@map("campaigns")
+}
+
+model Donation {
+  id          String   @id @default(cuid())
+  amount      Float
+  currency    String
+  donorId     String?
+  donorWallet String
+  campaignId  String
+  transactionHash String? @unique
+  status      DonationStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  confirmedAt DateTime?
+  
+  donor     User?     @relation(fields: [donorId], references: [id])
+  campaign  Campaign @relation(fields: [campaignId], references: [id])
+  
+  @@map("donations")
+}
+
+model CampaignUpdate {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  campaignId  String
+  createdAt   DateTime @default(now())
+  
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+}
+
+model EscrowPayout {
+  id          String   @id @default(cuid())
+  campaignId  String
+  amount      Float
+  transactionHash String @unique
+  status      PayoutStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  processedAt DateTime?
+  
+  campaign Campaign @relation(fields: [campaignId], references: [id])
+  
+  @@map("escrow_payouts")
+}
+
+enum CampaignStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
+enum DonationStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model CampaignWithdrawal {
+  id          String   @id @default(cuid())
+  campaignId  String
+  amount      Float
+  recipientWallet String
+  transactionHash String?
+  unsignedTransaction String? // Store the unsigned transaction for signing
+  status      WithdrawalStatus @default(PENDING_SIGNATURE)
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+  
+  // Relations
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  
+  @@map("campaign_withdrawals")
+}
+
+enum WithdrawalStatus {
+  PENDING_SIGNATURE
+  PENDING_CONFIRMATION
+  COMPLETED
+  FAILED
+}
