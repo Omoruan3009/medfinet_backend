@@ -48,7 +48,7 @@ const createCampaign = async (req, res) => {
         category,
         endDate: new Date(endDate),
         impactGoal,
-        imageUrl,
+        imageUrl: imageUrl[0],
         creatorId: user.id, // Use Prisma user ID
         creatorWallet: user.wallet,
         status: 'PENDING',
