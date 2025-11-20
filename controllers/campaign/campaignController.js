@@ -8,7 +8,6 @@ const escrowService = new EscrowService();
 const createCampaign = async (req, res) => {
   try {
     const { title, description, targetAmount, category, endDate, impactGoal, imageUrl } = req.body;
-    console.log("img", imageUrl)
     // req.user comes from Supabase auth middleware
     const supabaseUser = req.user; 
     const id = supabaseUser.hospital_id.toString();
@@ -47,7 +46,7 @@ const createCampaign = async (req, res) => {
         category,
         endDate: new Date(endDate),
         impactGoal,
-        imageUrl: imageUrl[0],
+        imageUrl: imageUrl,
         creatorId: user.id, // Use Prisma user ID
         creatorWallet: user.wallet,
         status: 'PENDING',
